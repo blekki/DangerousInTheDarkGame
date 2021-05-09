@@ -7,6 +7,11 @@ var sw : integer;						{сила меча}
 	p : integer;						{твоє життя}
 	pp : integer;						{твоя броня}
 	
+	Minsw : integer;					{мінімальна сила}
+	Maxsw : integer;					{максимальна сила}
+	Minswp : integer;					{мінімальна бробивна сила}
+	Maxswp : integer;					{максимальна бробивна сила} 
+	
 	maxp : integer;						{твоє максимальне здоров'я}
 	maxpp : integer;					{твій максимальний щит}
 	
@@ -20,7 +25,6 @@ var sw : integer;						{сила меча}
 	Maxswm : integer;					{максимальна сила монстра}
 	Minswpm : integer;					{мінімальна бробивна сила монстра}
 	Maxswpm : integer;					{максимальна бробивна сила монстра} 
-	nameM : string;
 	
 	
 	mon : integer;						{mon-monster (рандомний монстр)}
@@ -38,10 +42,12 @@ var sw : integer;						{сила меча}
 	
 	have : byte;						{що з рандомної збої ти візьмеш}{так само відноситься до очків покращень}
 	
-	Fmon : text;						{це монстр з текстового файлу}
-	UdarMon : text;						{це удар монстра}
-	Xfile : string;						{що це за файл}
-	UdarMfile : string;					{що за удар робить мостр}
+	ChaMfile : text;					{характеристика монстра з текстового файлу}
+	ChaMon : string;					{назва файлу з монстром}
+	UdarMfile : text;					{це удар монстра}
+	UdarMon : string;					{назва файлу з ударами мостра}
+	ChaWfile : text;					{характеристики зброї з файлу}
+	ChaWeapon : string;					{назва файлу з характеристиками зброї}
 	
 
 procedure po();  			{po- пояснення}
@@ -76,7 +82,7 @@ begin
 			writeln(pm,'-',sw);
 end;
 
-{}
+{смерть воїна}
 
 procedure dead();
 begin
@@ -95,22 +101,23 @@ procedure weapon();
 begin
 case wea of
 
-0:begin 
+1:begin
 	writeln('поламаний кинжал'); 
 	writeln('---сила меча : 2-5');
 	writeln('---пробивна сила меча : 1-3');
   end;
 
-1:begin 
+2:begin 
 	writeln('залізний кинжал');
 	writeln('---сила меча : 4-8');
 	writeln('---пробивна сила меча : 2-5');
   end;
-2:begin 
+3:begin
 	writeln('залізний меч');
 	writeln('---сила меча : 5-10');
 	writeln('---пробивна сила меча : 3-5');
   end;
+  {----------------------------------------------------------
 3:begin 
 	writeln('залізний молот');
 	writeln('---сила меча : 6-8');
@@ -160,9 +167,10 @@ case wea of
 		writeln('комок слизі');
 		writeln('15:5');
 	 end;
-  
+----------------------------------------------------------}
   
 end;
+
 end;
 
 
@@ -170,59 +178,63 @@ end;
 
 procedure weaponScan();
 begin;
+	sw := Minsw + random(Maxsw);
+	swp := Minswp + random(Maxswp);
+end;
+{----------------------------------------
 case wea of
 0:begin 
-	{поламаний кинжал}
-	sw := 2 + random(6);
+	поламаний кинжал
+	sw := 2 + random(4);
 	swp := 1 + random(3);
   end;
 1:begin 
-	{залізний кинжал}
+	залізний кинжал
 	sw := 4 + random(5);
 	swp := 2 + random(4);
   end;
 2:begin 
-	{залізний меч}
+	залізний меч
 	sw := 5 + random(6);
 	swp := 3 + random(3);
   end;
 3:begin 
-	{залізний молот}
+	залізний молот
 	sw := 6 + random(3);
 	swp := 4 + random(7);
   end;
 4:begin
-	{залізна сабля}
+	залізна сабля
 	sw := 9 + random(4);
 	swp := 3 + random(4);
   end;
 5:begin 
-	{піратська сабля}
+	піратська сабля
 	sw := 11 + random(5);
 	swp := 4 + random(2);
   end;
 6:begin  
-	{палка з шипами}
+	палка з шипами
 	sw := 5 + random(6);
 	swp := 5 + random(6);
   end;
 7:begin 
-	{поламаний срібний меч}
+	поламаний срібний меч
 	sw := 13 + random(6);
 	swp := 7 + random(4);
   end;
 8:begin 
-	{поламана залізна катана}
+	поламана залізна катана
 	sw := 14 + random(7);
 	swp := 6 + random(3);
   end;
 9:begin 
-	{поламана стальна катана}
+	поламана стальна катана
 	sw := 16 + random(10);
 	swp := 10 + random(5);
   end;
 10:begin
-	{стальний меч}
+	стальний меч
 	sw := 13 + random(8);
 	swp := 11 + random(8);
   end;
@@ -232,12 +244,13 @@ case wea of
   end;
   
 1001:begin 
-	{комок слизі}
+	комок слизі
 	sw := 6 + random(13);
 	swp := 5;
   end;
 end;
-end;
+end;-------------------------------------}
+
 {моби}
 {--------------------------------------------------------
 procedure slugGreen();
@@ -499,6 +512,10 @@ BEGIN
 	{b := 1;}
 	wea := 1;
 	maxp := 30;
+	Minsw	:=2;
+	Maxsw	:=4;
+	Minswp 	:=1;
+	Maxswp 	:=3;
 	
 	p := 30;
 	pp := 15;
@@ -507,6 +524,7 @@ BEGIN
 	writeln(p,' твоє життя');
 	writeln(pp,'  твоя броня');
 	writeln('в тебе Поламаний кинжал');
+	weaponScan;
 	
 repeat	
     writeln('кімната-',level);
@@ -537,15 +555,15 @@ repeat
 	
 	case mon of
 		1:begin
-			Xfile := '1slagGreen.txt';
+			ChaMon := '1slagGreen.txt';
 			writeln('Зелений Слизень');
 		  end;
 		2:begin		
-			Xfile := '2slugYellow.txt';
+			ChaMon := '2slugYellow.txt';
 			writeln('Жовтий Слизень');
 		  end;
 		3:begin		
-			Xfile := '3slugRed.txt';
+			ChaMon := '3slugRed.txt';
 			writeln('Червоний Слизень');
 		  end;	
 		{4:begin		
@@ -566,18 +584,16 @@ repeat
 			 end;}		 
 	end;
 			
-			assign(Fmon, 'mobs/character/'+ Xfile);
-			reset(Fmon);
-			read(Fmon, Minswm);
-			readln(Fmon, Maxswm);
-			read(Fmon, Minswpm);
-			readln(Fmon, Maxswpm);
-			readln(Fmon, pm);
-			readln(Fmon, ppm);
-			close(Fmon);
+			assign(ChaMfile, 'mobs/character/'+ ChaMon);
+			reset(ChaMfile);
+			read(ChaMfile, Minswm);
+			readln(ChaMfile, Maxswm);
+			read(ChaMfile, Minswpm);
+			readln(ChaMfile, Maxswpm);
+			readln(ChaMfile, pm);
+			readln(ChaMfile, ppm);
+			close(ChaMfile);
 			
-			swm := Minswm + random(Maxswm);
-			swpm := Minswpm + random(Maxswpm);
 			writeln(pm,'-життя монстра');
 			writeln(ppm,'-броня монстра');
 			writeln(':');
@@ -585,13 +601,13 @@ repeat
 
 	case mon of
 	1: begin 
-		UdarMfile := '1slagGreenUdar.txt'
+		UdarMon := '1slagGreenUdar.txt'
 	   end;
 	2: begin
-		UdarMfile := '2slagYellowUdar.txt'
+		UdarMon := '2slagYellowUdar.txt'
 	   end;	
 	3:begin
-		UdarMfile := '3slagRedUdar.txt'
+		UdarMon := '3slagRedUdar.txt'
 	  end;
 	{4: begin
 		slagBigUdar
@@ -611,16 +627,17 @@ repeat
 			KingOfSlugsUdar
 		 end;}
 	end;
+
+			assign(UdarMfile, 'mobs/DamageMonster/'+ UdarMon);
+			reset(UdarMfile);
+repeat   {початок бійки}		
 	
-			assign(UdarMon, 'mobs/DamageMonster/'+ UdarMfile);
-			reset(UdarMon);
-repeat			
-			if Eof(UdarMon) then
+			if Eof(UdarMfile) then
 			begin
-			close(UdarMon);
-			reset(UdarMon);
+			close(UdarMfile);
+			reset(UdarMfile);
 			end
-			else readln(UdarMon, Udm);
+			else readln(UdarMfile, Udm);
 		
 		
 		
@@ -632,9 +649,11 @@ repeat
 	writeln('4: слідкувати за спиною');
 	readln(di);
 	writeln(':');
+	swm := Minswm + random(Maxswm);
+	swpm := Minswpm + random(Maxswpm);
 	
 		weaponScan;
-	
+		po;
 	
 	case di of
 		1:begin
@@ -1039,13 +1058,13 @@ until (pm or p) <= 0;
 		writeln('Ти знищив монстра' );
 		writeln(':');
 		writeln('НАГОРОДА З МОНСТРА');
-		level := level + 1;
+		level := level + 1;		
+		wea := level + random(3);
+
+
 		
-		wea := level + random(4);
-		
-				case level of
-				
-				6:begin
+			case level of				
+				6,11,16:begin
 					wea :=1001;
 					
 					writeln(':');
@@ -1109,28 +1128,38 @@ until (pm or p) <= 0;
 					pp := maxpp;
 					
 				  end;
-				11:begin
-				
-				  end;
-				16:begin
-				
-				  end;
-				21:begin
-				
-				  end;    
 				end;
-		
+				
+		case wea of
+		1:begin
+			ChaWeapon := '1BrokenDagger';
+		  end;
+		2:begin
+			ChaWeapon := '2IronDagger';
+		  end;
+		3:begin
+			ChaWeapon := '3IronSword';
+		  end;
+		end;		
+			
+			
 		weapon;
-		writeln(':');		
-		writeln(':');
+			assign(ChaWfile, 'weapon/normal/'+ ChaWeapon);
+			reset(ChaWfile);
+			read(ChaWfile, Minsw);
+			Readln(ChaWfile, Maxsw);
+			read(ChaWfile, Minswp);
+			Readln(ChaWfile, Maxswp);
+			close(ChaWfile);
+				
+		writeln(':' + ':');		
 		writeln('ти візьмеш цю зброю?...');
 		writeln('так-1');
 		writeln('ні-2');
 		readln(have);
 		writeln(':');
 			case have of
-			1: weaponScan;
-			
+			1: weaponScan;			
 			end;
 		
 	end;
