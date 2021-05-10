@@ -49,6 +49,11 @@ var sw : integer;						{сила меча}
 	ChaWfile : text;					{характеристики зброї з файлу}
 	ChaWeapon : string;					{назва файлу з характеристиками зброї}
 	
+	SaveName : string;					{назва файлу з збереженнями}
+	SaveStatus : string;				{поше чи є збережження}
+	B : char;							{говорить, який файл призначений для збережень гри а також загрузки гри}
+	
+	
 
 procedure po();  			{po- пояснення}
 begin
@@ -501,15 +506,9 @@ begin
 			dim := 1
 end;
 -------------------------------------------------------}
-
-
-
-{основна программа<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
-
-BEGIN
-	randomize;	
+procedure NewLevel();
+begin
 	level := 1;
-	{b := 1;}
 	wea := 1;
 	maxp := 30;
 	Minsw	:=2;
@@ -520,6 +519,129 @@ BEGIN
 	p := 30;
 	pp := 15;
 	maxpp := 15;
+end;
+
+function SaveSlot(NameSlot : string) : boolean;
+var Check : text;
+	CheckNumber : integer;
+begin
+	assign(Check, 'saves/'+ NameSlot);
+	reset(Check);
+	readln(Check, CheckNumber);
+	close(Check);
+	SaveSlot := CheckNumber = 1;
+
+end;
+
+
+procedure SaveCheckSlot();
+var K : Byte;
+	{B : Char;}
+begin
+	for K := 1 to 3 do
+	begin
+	case K of
+	1:B := '1';
+	2:B := '2';
+	3:B := '3';
+	end;
+		SaveName := B +'save.txt';
+		if SaveSlot(SaveName) then
+		begin
+		SaveStatus := 'Збереження в наявності';
+		writeln(B + ' слот збереження ---' + SaveStatus);
+		end
+		else begin 
+		SaveStatus := 'Пустий слот';
+		writeln(B + ' слот збереження ---' + SaveStatus);
+		end;
+	end;
+end;
+
+procedure LoadingSave();
+var {B : Char;}
+	SaveFile : text; 	{файл збереження}
+begin
+	readln(have);
+	case have of
+	1:B :='1';
+	2:B :='2';
+	3:B :='3';
+	end;
+
+		if SaveSlot(B + 'save.txt') then
+		begin
+			write('Хочете продовжити гру?: 1-так/2-ні:');
+			readln(have);
+				case have of
+				1:begin
+					assign(SaveFile, 'saves/' + B + 'save.txt' );
+					reset(SaveFile);
+					
+					readln(SaveFile);
+					readln(SaveFile, p);
+					readln(SaveFile, pp);
+					readln(SaveFile, Maxp);
+					readln(SaveFile, Maxpp);
+					readln(SaveFile, level);
+					readln(SaveFile, Minsw);
+					readln(SaveFile, Maxsw);
+					readln(SaveFile, Minswp);
+					readln(SaveFile, Maxswp);
+									
+					close(SaveFile);
+			      end;
+				2:begin
+						writeln('Хочеш створити нову гру?: 1-так/2-ні:');
+						readln(have);
+						if have = 1 then
+							NewLevel
+				  end;
+				end;
+		end
+		else begin
+			writeln(B + '-це пустий слот');
+			write('хочете почати нову гру? 1-так/2-ні:');
+			readln(have);
+				if have = 1 then
+				NewLevel
+				else have := 2;
+		end;
+			
+end;
+
+
+procedure SaveGame();
+var SaveGfile : text;
+begin
+	assign(SaveGfile, 'saves/' + B + 'save.txt');
+	rewrite(SaveGfile);
+	writeln(SaveGfile, 1, 		' (стан збереження)');
+	writeln(SaveGfile, p,			' (p)');
+	writeln(SaveGfile, pp, 		' (pp)');
+	writeln(SaveGfile, Maxp,		' (Maxp)');
+	writeln(SaveGfile, Maxpp,		' (Maxpp)');
+	writeln(SaveGfile, Level,		' (level)');
+	writeln(SaveGfile, Minsw,		' (Minsw)');
+	writeln(SaveGfile, Maxsw,		' (Maxsw)');
+	writeln(SaveGfile, Minswp,	' (Minswp)');
+	writeln(SaveGfile, Maxswp,	' (Maxswp)');
+	close(SaveGfile);
+	
+end;
+
+{основна программа<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
+
+BEGIN
+	randomize;	
+
+repeat
+	SaveCheckSlot;
+	write('Який слот гри загрузити?---');
+	LoadingSave;
+		if have =1 then break
+		
+until have =1;
 	
 	writeln(p,' твоє життя');
 	writeln(pp,'  твоя броня');
@@ -529,8 +651,15 @@ BEGIN
 repeat	
     writeln('кімната-',level);
     writeln(':');
-	write('відкрити двері в кімнату?');
-	readln();
+    SaveGame;
+repeat
+	write('Відкрити двері в кімнату?: 1-так 2-ні ');
+	readln(have);
+		if have = 2 then
+			begin
+			writeln('Гра збереглась...' + 'Ви можете спокійно закрити гру...');
+			end;
+until have = 1;
 	writeln(':');
 	
 	mon := level + random (3);
