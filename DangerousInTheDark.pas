@@ -12,7 +12,7 @@ var sw : integer;						{сила меча}
 	Minswp : integer;					{мінімальна бробивна сила}
 	Maxswp : integer;					{максимальна бробивна сила} 
 	
-	Blocking : byte;						{твій шанс блокування}
+	Blocking : byte;					{твій шанс блокування}
 	
 	maxp : integer;						{твоє максимальне здоров'я}
 	maxpp : integer;					{твій максимальний щит}
@@ -29,16 +29,16 @@ var sw : integer;						{сила меча}
 	Minswpm : integer;					{мінімальна бробивна сила монстра}
 	Maxswpm : integer;					{максимальна бробивна сила монстра} 
 	
-	BlockingM : byte;						{шанс блокування монстра}
+	BlockingM : byte;					{шанс блокування монстра}
 	
 	mon : integer;						{mon-monster (рандомний монстр)}
 	
 	di : integer;						{який удар ти зробиш}
 	
-	{dim : integer;}                       {який удар зробить монстр}
+	{dim : integer;}                    {який удар зробить монстр}
 	Udm : integer;
 	
-	level : byte;					{на якому ти рівні}
+	level : byte;						{на якому ти рівні}
 	
 	povtor : string;					{перезапускає гру після смерті воїна}	
 	
@@ -71,23 +71,6 @@ case Udm of
 		end;	
 end;
 writeln(':');
-end;
-
-
-procedure damage();
-begin
-			p := p - swm;
-			writeln('лишилось твого життя');
-			writeln(p,'-',swm);
-end;
-
-
-
-procedure damageMon();
-begin
-			pm := pm - sw;
-			writeln('лишилось життя монстра');
-			writeln(pm,'-',sw);
 end;
 				
 {загрузка нових характеристик}
