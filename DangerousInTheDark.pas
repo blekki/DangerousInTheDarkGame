@@ -52,6 +52,7 @@ var sw : integer;						{сила меча}
 	SaveName : string;					{назва файлу з збереженнями}
 	SaveStatus : string;				{поше чи є збережження}
 	B : char;							{говорить, який файл призначений для збережень гри а також загрузки гри}
+
 	
 	
 
@@ -86,22 +87,27 @@ begin
 			writeln('лишилось життя монстра');
 			writeln(pm,'-',sw);
 end;
+				
+{загрузка нових характеристик}
 
-{смерть воїна}
-
-procedure dead();
+procedure NewLevel();
 begin
-writeln('В героїчній битві за підземелля,');
-writeln('загинув воїн...');
-writeln('натисніть Enter для продовження...');
-readln(povtor);
-pm := 0;
-level := 1;
+	level := 1;
+	wea := 1;
+	maxp := 30;
+	Minsw	:=2;
+	Maxsw	:=4;
+	Minswp 	:=1;
+	Maxswp 	:=3;
+	
+	p := 30;
+	pp := 15;
+	maxpp := 15;
 end;
 
 
 {зброя яка випадає з мобів}
-
+  {----------------------------------------------------------
 procedure weapon();
 begin
 case wea of
@@ -122,7 +128,6 @@ case wea of
 	writeln('---сила меча : 5-10');
 	writeln('---пробивна сила меча : 3-5');
   end;
-  {----------------------------------------------------------
 3:begin 
 	writeln('залізний молот');
 	writeln('---сила меча : 6-8');
@@ -172,12 +177,10 @@ case wea of
 		writeln('комок слизі');
 		writeln('15:5');
 	 end;
-----------------------------------------------------------}
   
 end;
-
 end;
-
+----------------------------------------------------------}
 
 {читає характеристики зброї}
 
@@ -506,20 +509,6 @@ begin
 			dim := 1
 end;
 -------------------------------------------------------}
-procedure NewLevel();
-begin
-	level := 1;
-	wea := 1;
-	maxp := 30;
-	Minsw	:=2;
-	Maxsw	:=4;
-	Minswp 	:=1;
-	Maxswp 	:=3;
-	
-	p := 30;
-	pp := 15;
-	maxpp := 15;
-end;
 
 function SaveSlot(NameSlot : string) : boolean;
 var Check : text;
@@ -534,9 +523,9 @@ begin
 end;
 
 
+
 procedure SaveCheckSlot();
 var K : Byte;
-	{B : Char;}
 begin
 	for K := 1 to 3 do
 	begin
@@ -545,7 +534,7 @@ begin
 	2:B := '2';
 	3:B := '3';
 	end;
-		SaveName := B +'save.txt';
+		SaveName := B +'save.txt';		
 		if SaveSlot(SaveName) then
 		begin
 		SaveStatus := 'Збереження в наявності';
@@ -592,16 +581,21 @@ begin
 					close(SaveFile);
 			      end;
 				2:begin
-						writeln('Хочеш створити нову гру?: 1-так/2-ні:');
+						writeln('Хочиш ВИДАЛИТИ збереження з цього слоту?: 1-так/2-ні');
 						readln(have);
-						if have = 1 then
-							NewLevel
+							if have = 1 then begin 
+								have := 2;
+								assign(SaveFile, 'saves/' + B + 'save.txt');
+								rewrite(SaveFile);
+								writeln(SaveFile, 0);
+								close(SaveFile);
+							end;
 				  end;
 				end;
 		end
 		else begin
 			writeln(B + '-це пустий слот');
-			write('хочете почати нову гру? 1-так/2-ні:');
+			write('Хочете почати нову гру? 1-так/2-ні:');
 			readln(have);
 				if have = 1 then
 				NewLevel
@@ -617,31 +611,147 @@ begin
 	assign(SaveGfile, 'saves/' + B + 'save.txt');
 	rewrite(SaveGfile);
 	writeln(SaveGfile, 1, 		' (стан збереження)');
-	writeln(SaveGfile, p,			' (p)');
+	writeln(SaveGfile, p,		' (p)');
 	writeln(SaveGfile, pp, 		' (pp)');
-	writeln(SaveGfile, Maxp,		' (Maxp)');
-	writeln(SaveGfile, Maxpp,		' (Maxpp)');
-	writeln(SaveGfile, Level,		' (level)');
-	writeln(SaveGfile, Minsw,		' (Minsw)');
-	writeln(SaveGfile, Maxsw,		' (Maxsw)');
+	writeln(SaveGfile, Maxp,	' (Maxp)');
+	writeln(SaveGfile, Maxpp,	' (Maxpp)');
+	writeln(SaveGfile, Level,	' (level)');
+	writeln(SaveGfile, Minsw,	' (Minsw)');
+	writeln(SaveGfile, Maxsw,	' (Maxsw)');
 	writeln(SaveGfile, Minswp,	' (Minswp)');
 	writeln(SaveGfile, Maxswp,	' (Maxswp)');
 	close(SaveGfile);
 	
 end;
 
+{смерть воїна}
+
+procedure dead();
+begin
+writeln('В героїчній битві за підземелля,');
+writeln('загинув воїн...');
+writeln('натисніть Enter щоб вийти в меню...');
+readln(povtor);
+pm := 0;
+	NewLevel;
+	SaveGame;
+end;
+
+{покращення скілів}
+
+
+
+procedure UpdateSkills();
+var K, G : byte;
+begin
+	if level < 5 then begin
+	G := 1;
+	end;
+	writeln(':');
+	writeln('в тебе два очка покращення');
+	for K:= 1 to 2 do begin
+		writeln('1:життя');
+		writeln('2:броня');
+		readln(have);
+			case have of
+			1:	begin
+					Maxp := Maxp + 5;
+					writeln(maxp,'-твое поліковане життя');
+					writeln(':');
+						if p < maxp then
+						p := p + 1;
+					
+					if K = 1 then
+					writeln('В тебе лишилося одне очко покращення');
+				 end;
+			2:begin
+					maxpp := maxpp + 5;
+					writeln(maxpp,'-твоя нова броня');
+					writeln(':');
+						pp := maxpp;
+					
+					if K = 1 then
+					writeln('В тебе лишилося одне очко покращення');
+				 end;	
+			else begin	case G of
+						1:begin
+							writeln('Ти не хочеш взяти покращення?');
+							writeln('Ну раз ти так вирішив...');
+						end;
+						2: begin
+							writeln('Ти що творИш?..');
+							writeln('ПереСтань так робити...');
+						end;
+						3: begin
+							writeln('ТоБі нЕясно?..');
+							writeln('Ти поЧинаЄш наГліти...');
+						end;
+						4: begin
+							writeln('КОМУ СК#ЗАНО ПЕрЕСТАТИ!!!');
+							writeln('Т&БІ, СКАЗ#НО ПЕРЕСТ%ТИ!!!!!!!!!!!!!!!!!');
+						end;
+						5: begin
+							writeln('Я споКі@ний... Так, спо%ійний...');
+							writeln('Те#ер ТВ&Я черга засп@коїтися...');
+						end;
+						6: begin
+							writeln('Д# тебе н* до#оди&ь?!...');
+							writeln('Ти з@об&в уКилеВ пом#лку....');
+						end;
+						else writeln('Ви розбудили велике зло...');	
+						end;					
+						G := G + 1;
+				 end;	
+			end;
+	end;
+	
+end;
+
+procedure CheatCodes ();
+var Cheat : string;
+	CheatNum : integer;
+begin
+	repeat
+	write('/');
+	readln(Cheat); 
+	case Cheat of
+	'lev+':begin
+			write('\котрий рівень?');
+			readln(CheatNum);
+			if have < 50 then
+			writeln('\такого рівня не має')
+			else
+			level := CheatNum;
+		   end;	
+	'NewHP':begin
+			write('\на скільки підняти життя?');
+			readln(CheatNum);
+			maxp := maxp + CheatNum;
+			p := maxp;
+			end;
+	'Newpp':begin
+			write('\на скільки підняти броню?');
+			readln(CheatNum);
+			maxpp := maxpp + CheatNum;
+			pp := maxpp;
+			end;
+	end;
+	until cheat = '';
+end;
+
 {основна программа<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
 
 BEGIN
 	randomize;	
+while level < 51 do begin	{після смерті вертає тебе сюди}
 
-repeat
-	SaveCheckSlot;
-	write('Який слот гри загрузити?---');
-	LoadingSave;
-		if have =1 then break
-		
-until have =1;
+	repeat
+		SaveCheckSlot;
+		write('Який слот гри загрузити?---');
+		LoadingSave;
+			if have =1 then break
+			
+	until have =1;
 	
 	writeln(p,' твоє життя');
 	writeln(pp,'  твоя броня');
@@ -652,15 +762,16 @@ repeat
     writeln('кімната-',level);
     writeln(':');
     SaveGame;
-repeat
-	write('Відкрити двері в кімнату?: 1-так 2-ні ');
-	readln(have);
-		if have = 2 then
-			begin
-			writeln('Гра збереглась...' + 'Ви можете спокійно закрити гру...');
-			end;
-until have = 1;
-	writeln(':');
+		repeat
+			write('Відкрити двері в кімнату?: 1-так 2-ні ');
+			readln(have);
+				case have of
+				2: writeln('Гра збереглась...' + 'Ви можете спокійно закрити гру...');
+				255: CheatCodes;
+				end;
+				
+		until have = 1;
+		writeln(':');
 	
 	mon := level + random (3);
 	
@@ -684,7 +795,7 @@ until have = 1;
 	
 	case mon of
 		1:begin
-			ChaMon := '1slagGreen.txt';
+			ChaMon := '1slugGreen.txt';
 			writeln('Зелений Слизень');
 		  end;
 		2:begin		
@@ -694,10 +805,20 @@ until have = 1;
 		3:begin		
 			ChaMon := '3slugRed.txt';
 			writeln('Червоний Слизень');
+		  end;
+		4:begin
+			ChaMon := '4BigGreenSlug.txt';
+			writeln('Великий Слизень');
+		  end;
+		5:begin		
+			ChaMon := '5FastYellowSlug.txt';
+			writeln('Швидкий Слизень');
+		  end;
+		6:begin		
+			ChaMon := '6MilitarySlug.txt';
+			writeln('Віськовий Слизень');
 		  end;	
-		{4:begin		
-			slagBig;
-		  end; 
+		{
 		5:begin
 			skeletonSwordsman;
 		  end;
@@ -707,10 +828,12 @@ until have = 1;
 		7:begin
 			skeletonPoisoned;
 		  end;
-		
+		}
 		1001:begin
-				KingOfSlugs;
-			 end;}		 
+			ChaMon := '1001KingOfSlugs.txt';
+			write('БОСС: ');
+			writeln('Король Слизняків');
+			 end;		 
 	end;
 			
 			assign(ChaMfile, 'mobs/character/'+ ChaMon);
@@ -730,17 +853,24 @@ until have = 1;
 
 	case mon of
 	1: begin 
-		UdarMon := '1slagGreenUdar.txt'
+		UdarMon := '1slugGreenUdar.txt'
 	   end;
 	2: begin
-		UdarMon := '2slagYellowUdar.txt'
+		UdarMon := '2slugYellowUdar.txt'
 	   end;	
 	3:begin
-		UdarMon := '3slagRedUdar.txt'
+		UdarMon := '3slugRedUdar.txt'
 	  end;
-	{4: begin
-		slagBigUdar
+	4: begin 
+		UdarMon := '4BigGreenSlugUdar.txt'
 	   end;
+	5: begin
+		UdarMon := '5FastYellowSlugUdar.txt'
+	   end;	
+	6:begin
+		UdarMon := '6MilitarySlugUdar.txt'
+	  end;
+	{
 	5:begin
 		skeletonSwordsmanUdar
 	  end;
@@ -751,10 +881,10 @@ until have = 1;
 		skeletonPoisonedUdar
 	  end;
 	  
-	  
+	}
 	1001:begin
-			KingOfSlugsUdar
-		 end;}
+		UdarMon :=	'1001KingOfSlugsUdar.txt'
+		 end;
 	end;
 
 			assign(UdarMfile, 'mobs/DamageMonster/'+ UdarMon);
@@ -767,6 +897,9 @@ repeat   {початок бійки}
 			reset(UdarMfile);
 			end
 			else readln(UdarMfile, Udm);
+	
+	swm := Minswm + random(Maxswm);
+	swpm := Minswpm + random(Maxswpm);
 		
 		
 		
@@ -1184,6 +1317,7 @@ until (pm or p) <= 0;
 			
 	else 
 	begin
+	povtor := '1';
 		writeln('Ти знищив монстра' );
 		writeln(':');
 		writeln('НАГОРОДА З МОНСТРА');
@@ -1195,84 +1329,43 @@ until (pm or p) <= 0;
 			case level of				
 				6,11,16:begin
 					wea :=1001;
-					
-					writeln(':');
-					writeln('в тебе два очка покращення');
-					writeln('1:життя');
-					writeln('2:броня');
-					readln(have);
-						
-						case have of
-						1:begin
-							maxp := maxp + 5;
-							writeln(maxp,'-твое поліковане життя');
-							writeln(':');
-							writeln('в тебе одне очко покращення');
-							writeln('1:життя');
-							writeln('2:броня');
-							readln(have);
-								case have of
-									1:begin
-										maxp := maxp + 5;
-										writeln(maxp,'-твое поліковане життя');
-										writeln(':');
-									  end;
-									2:begin
-										maxpp := maxpp + 5;
-										writeln(maxpp,'-твоя нова броня');
-										writeln(':');
-									  end;					
-								end;
-						  end;
-						2:begin
-							maxpp := maxpp + 5;
-							writeln(maxpp,'-твоя нова броня');
-							writeln(':');
-							writeln('в тебе одне очко покращення');
-							writeln('1:життя');
-							writeln('2:броня');
-							readln(have);
-							case have of
-									1:begin
-										maxp := maxp + 5;
-										writeln(maxp,'-твое поліковане життя');
-										writeln(':');
-									  end;
-									2:begin
-										maxpp := maxpp + 5;
-										writeln(maxpp,'-твоя нова броня');
-										writeln(':');
-									  end;				
-								end;
-						  end
-						
-						end;
-					{лікування}
-					while p = maxp do
-					begin
-					p:= p +1
-					end; 
-					{кінець лікування}
-					
-					pp := maxpp;
-					
-				  end;
+					UpdateSkills;
+				end;				
 				end;
 				
 		case wea of
+		0:begin
+			ChaWeapon := '0BrokenDagger.txt';
+			writeln('Поламаний Кинджал');
+		  end;
 		1:begin
-			ChaWeapon := '1BrokenDagger';
+			ChaWeapon := '1BrokenIronDagger.txt';
+			writeln('Поламаний залізний кинджал');
 		  end;
 		2:begin
-			ChaWeapon := '2IronDagger';
+			ChaWeapon := '2BrokenIronSword.txt';
+			writeln('Поламаний залізний меч');
 		  end;
 		3:begin
-			ChaWeapon := '3IronSword';
+			ChaWeapon := '3SharpWoodDagger.txt';
+			writeln('Гострий деревʼяний кинджал');
 		  end;
+		4:begin
+			ChaWeapon := '4SharpWoodSword.txt';
+			writeln('Гострий деревʼяний меч');
+		 end;
+		5:begin
+			ChaWeapon := '5IronSword.txt';
+			writeln('Залізний меч');
+		 end;
+		6:begin
+			ChaWeapon := '6SharpIronSword.txt';
+			writeln('Гострий залізний меч');
+		 end;
 		end;		
 			
 			
-		weapon;
+		
 			assign(ChaWfile, 'weapon/normal/'+ ChaWeapon);
 			reset(ChaWfile);
 			read(ChaWfile, Minsw);
@@ -1280,6 +1373,16 @@ until (pm or p) <= 0;
 			read(ChaWfile, Minswp);
 			Readln(ChaWfile, Maxswp);
 			close(ChaWfile);
+			
+		write('урон: ');
+		write(Minsw);
+		write('---');
+		writeln(Maxsw);
+		write('пробивна сила: ');
+		write(Minswp);
+		write('---');
+		writeln(Maxswp);
+		
 				
 		writeln(':' + ':');		
 		writeln('ти візьмеш цю зброю?...');
@@ -1294,8 +1397,8 @@ until (pm or p) <= 0;
 	end;
 
 		
-until povtor ='-';
-	
+until povtor ='';
+end; 	
 
 	
 	
