@@ -12,6 +12,8 @@ var sw : integer;						{сила меча}
 	Minswp : integer;					{мінімальна бробивна сила}
 	Maxswp : integer;					{максимальна бробивна сила} 
 	
+	Blocking : byte;						{твій шанс блокування}
+	
 	maxp : integer;						{твоє максимальне здоров'я}
 	maxpp : integer;					{твій максимальний щит}
 	
@@ -19,13 +21,15 @@ var sw : integer;						{сила меча}
 	swm : integer;						{сила монстра}
 	swpm : integer;						{бробивна сила монстра}
 	pm : integer;						{життя монстра}
-	ppm : integer;						{броня монстра} 
+	ppm : integer;						{броня монстра}
+	maxppm : integer;					{максимальний щит монстра} 
 	
 	Minswm : integer;					{мінімальна сила монстра}
 	Maxswm : integer;					{максимальна сила монстра}
 	Minswpm : integer;					{мінімальна бробивна сила монстра}
 	Maxswpm : integer;					{максимальна бробивна сила монстра} 
 	
+	BlockingM : byte;						{шанс блокування монстра}
 	
 	mon : integer;						{mon-monster (рандомний монстр)}
 	
@@ -34,7 +38,7 @@ var sw : integer;						{сила меча}
 	{dim : integer;}                       {який удар зробить монстр}
 	Udm : integer;
 	
-	level : integer;					{на якому ти рівні}
+	level : byte;					{на якому ти рівні}
 	
 	povtor : string;					{перезапускає гру після смерті воїна}	
 	
@@ -46,8 +50,6 @@ var sw : integer;						{сила меча}
 	ChaMon : string;					{назва файлу з монстром}
 	UdarMfile : text;					{це удар монстра}
 	UdarMon : string;					{назва файлу з ударами мостра}
-	ChaWfile : text;					{характеристики зброї з файлу}
-	ChaWeapon : string;					{назва файлу з характеристиками зброї}
 	
 	SaveName : string;					{назва файлу з збереженнями}
 	SaveStatus : string;				{поше чи є збережження}
@@ -99,12 +101,12 @@ begin
 	Maxsw	:=4;
 	Minswp 	:=1;
 	Maxswp 	:=3;
+	Blocking := 10;
 	
 	p := 30;
 	pp := 15;
 	maxpp := 15;
 end;
-
 
 {зброя яка випадає з мобів}
   {----------------------------------------------------------
@@ -184,11 +186,82 @@ end;
 
 {читає характеристики зброї}
 
-procedure weaponScan();
+procedure weaponDamage();
 begin;
 	sw := Minsw + random(Maxsw);
 	swp := Minswp + random(Maxswp);
 end;
+
+{просто читає та записує характеристики зброї}
+procedure weaponReadFile();
+var ChaWeapon : string; 	{назва файлу з характеристиками зброї}
+	ChaWfile : text;		{характеристики зброї з файлу}
+	
+	minsw, maxsw	: integer;
+	minswp, maxswp  : integer;
+begin
+case wea of
+		0:begin
+			ChaWeapon := '0BrokenDagger.txt';
+			writeln('Поламаний Кинджал');
+		  end;
+		1:begin
+			ChaWeapon := '1BrokenIronDagger.txt';
+			writeln('Поламаний залізний кинджал');
+		  end;
+		2:begin
+			ChaWeapon := '2BrokenIronSword.txt';
+			writeln('Поламаний залізний меч');
+		  end;
+		3:begin
+			ChaWeapon := '3SharpWoodDagger.txt';
+			writeln('Гострий деревʼяний кинджал');
+		  end;
+		4:begin
+			ChaWeapon := '4SharpWoodSword.txt';
+			writeln('Гострий деревʼяний меч');
+		 end;
+		5:begin
+			ChaWeapon := '5IronSword.txt';
+			writeln('Залізний меч');
+		 end;
+		6:begin
+			ChaWeapon := '6SharpIronSword.txt';
+			writeln('Гострий залізний меч');
+		 end;
+		end;		
+				
+			assign(ChaWfile, 'weapon/normal/'+ ChaWeapon);
+			reset(ChaWfile);
+			read(ChaWfile, minsw);
+			Readln(ChaWfile, maxsw);
+			read(ChaWfile, minswp);
+			Readln(ChaWfile, maxswp);
+			close(ChaWfile);
+			
+		write('урон: ');
+		writeln(minsw,':', maxsw);
+		write('пробивна сила: ');
+		writeln(minswp,':',maxswp);
+		
+				
+		writeln(':');
+		writeln(':');		
+		writeln('ти візьмеш цю зброю?...');
+		writeln('>так-1');
+		writeln('>ні-2');
+		readln(have);
+			if have = 1 then begin
+			Minsw 	:= minsw;
+			Maxsw 	:= maxsw;
+			Minswp 	:= minswp;
+			Maxswp 	:= maxswp;
+			end;
+		writeln(':');
+
+
+end;
+
 {----------------------------------------
 case wea of
 0:begin 
@@ -255,59 +328,12 @@ case wea of
 	комок слизі
 	sw := 6 + random(13);
 	swp := 5;
-  end;
+  end;	pp := 15;
 end;
 end;-------------------------------------}
 
 {моби}
 {--------------------------------------------------------
-procedure slugGreen();
-begin
-			writeln('Зелений Слизень');
-			swm := 0;
-			swpm := 0;
-			pm := 10;				
-			ppm :=2;
-			writeln(pm,'-життя монстра');
-			writeln(ppm,'-броня монстра');
-			writeln(':');
-end;
-
-procedure slugYellow();
-begin
-			writeln('Жовтий Слизень');
-			swm := 1 + random(5);
-			swpm := 1 + random(2);
-			pm := 15;				
-			ppm :=3;
-			writeln(pm,'-життя монстра');
-			writeln(ppm,'-броня монстра');
-			writeln(':');
-end;
-
-procedure slugRed();
-begin
-			writeln('Червоний Слизень');
-			swm := 1 + random (10);
-			swpm := 1 + random(3);
-			pm := 20;				
-			ppm :=5;
-			writeln(pm,'-життя монстра');
-			writeln(ppm,'-броня монстра');
-			writeln(':');
-end;
-
-procedure slagBig();
-begin
-			writeln('Великий Слизень');
-			swm := 1 + random (5);
-			swpm := 1 + random(5);
-			pm := 25;				
-			ppm :=8;
-			writeln(pm,'-життя монстра');
-			writeln(ppm,'-броня монстра');
-			writeln(':');
-end;
 
 procedure skeletonSwordsman();
 begin
@@ -362,74 +388,7 @@ end;
 --------------------------------------------------------}
 {удари мобів}
 {-------------------------------------------------------
-* 
-procedure slagGreenUdar();
-begin
-	case dim of
-	1:Udm := 3;
-	
-	2:Udm := 4;
-	
-	3:Udm := 3;
-	
-	4:Udm := 4;
-	end;
-		po;
-		dim := dim + 1;
-			if dim = 5 then
-			dim := 1
-end;
-
-procedure slagYellowUdar();
-begin
-	case dim of
-	1:Udm := 3;
-	
-	2:Udm := 1;
-	
-	3:Udm := 4;
-	
-	4:Udm := 1;
-	end;
-		po;
-		dim := dim + 1;
-			if dim = 5 then
-			dim := 1
-end;
-
-procedure slagRedUdar();
-begin
-	case dim of
-	1:Udm := 3;
-	
-	2:Udm := 1;
-	
-	3:Udm := 2;
-	
-	4:Udm := 1;
-	end;	
-		po;
-		dim := dim + 1;
-			if dim = 5 then
-			dim := 1
-end;
-
-procedure slagBigUdar();
-begin
-	case dim of
-	1:Udm := 4;
-	
-	2:Udm := 2;
-	
-	3:Udm := 1;
-	
-	4:Udm := 4;
-	end;	
-		po;
-		dim := dim + 1;
-			if dim = 5 then
-			dim := 1
-end;
+ 
 
 procedure skeletonSwordsmanUdar();
 begin
@@ -483,33 +442,39 @@ begin
 end;
 
 -------------------------------------------------------}
-
-
-{БОССИ}
-
-{-------------------------------------------------------
-procedure KingOfSlugsUdar();
+{блокування удару}
+function ImpactBlocking(hp, damage : integer; Block, Num, stan : byte) : integer; {stan: 0 - людину, 1- монстра}
+var K : byte;
 begin
-	case dim of
-	1:Udm := 3;
-	
-	2:Udm := 2;
-	
-	3:Udm := 1;
-	
-	4:Udm := 1;
-	
-	5:Udm := 3;
-	
-	6:Udm := 4;
+	K := random(100);
+	Block := Block div Num;
+	if K <= Block then begin
+		if stan = 0 then begin
+		writeln('Блокування вдалося');
+		writeln(p, '-0');
+		ImpactBlocking := hp;
+		end
+		else begin
+		writeln('Монстер відбив вашу атаку');
+		writeln(pm,'-0');
+		ImpactBlocking := hp;
+		end;
+	end
+	else begin
+		if stan = 0 then begin
+		writeln('лишилось твого життя');
+		writeln(p,'-',swm);
+		ImpactBlocking := hp - damage;	
+		end
+		else begin
+		writeln('лишилось життя монстра');
+		writeln(pm,'-',sw);
+		ImpactBlocking := hp - damage;
+		end;
 	end;
-		po;
-		dim := dim + 1;
-			if dim = 7 then
-			dim := 1
 end;
--------------------------------------------------------}
 
+{зберігання гри і т.д.}
 function SaveSlot(NameSlot : string) : boolean;
 var Check : text;
 	CheckNumber : integer;
@@ -577,6 +542,7 @@ begin
 					readln(SaveFile, Maxsw);
 					readln(SaveFile, Minswp);
 					readln(SaveFile, Maxswp);
+					readln(SaveFile, Blocking);
 									
 					close(SaveFile);
 			      end;
@@ -610,16 +576,17 @@ var SaveGfile : text;
 begin
 	assign(SaveGfile, 'saves/' + B + 'save.txt');
 	rewrite(SaveGfile);
-	writeln(SaveGfile, 1, 		' (стан збереження)');
-	writeln(SaveGfile, p,		' (p)');
-	writeln(SaveGfile, pp, 		' (pp)');
-	writeln(SaveGfile, Maxp,	' (Maxp)');
-	writeln(SaveGfile, Maxpp,	' (Maxpp)');
-	writeln(SaveGfile, Level,	' (level)');
-	writeln(SaveGfile, Minsw,	' (Minsw)');
-	writeln(SaveGfile, Maxsw,	' (Maxsw)');
-	writeln(SaveGfile, Minswp,	' (Minswp)');
-	writeln(SaveGfile, Maxswp,	' (Maxswp)');
+	writeln(SaveGfile, 1, 		 ' (стан збереження)');
+	writeln(SaveGfile, p,		 ' (p)');
+	writeln(SaveGfile, pp, 		 ' (pp)');
+	writeln(SaveGfile, Maxp,	 ' (Maxp)');
+	writeln(SaveGfile, Maxpp,	 ' (Maxpp)');
+	writeln(SaveGfile, Level,	 ' (level)');
+	writeln(SaveGfile, Minsw,	 ' (Minsw)');
+	writeln(SaveGfile, Maxsw,	 ' (Maxsw)');
+	writeln(SaveGfile, Minswp,	 ' (Minswp)');
+	writeln(SaveGfile, Maxswp, 	 ' (Maxswp)');
+	writeln(SaveGfile, Blocking, ' (Blocking)');
 	close(SaveGfile);
 	
 end;
@@ -645,7 +612,6 @@ procedure UpdateSkills();
 var K, G : byte;
 begin
 	if level < 5 then begin
-	G := 1;
 	end;
 	writeln(':');
 	writeln('в тебе два очка покращення');
@@ -668,37 +634,46 @@ begin
 					maxpp := maxpp + 5;
 					writeln(maxpp,'-твоя нова броня');
 					writeln(':');
-						pp := maxpp;
+						if pp < maxpp then
+						pp := pp + 1;
 					
 					if K = 1 then
 					writeln('В тебе лишилося одне очко покращення');
 				 end;	
-			else begin	case G of
+			else begin 	G := 1;
+						case G of
 						1:begin
 							writeln('Ти не хочеш взяти покращення?');
 							writeln('Ну раз ти так вирішив...');
+							readln();
 						end;
 						2: begin
 							writeln('Ти що творИш?..');
 							writeln('ПереСтань так робити...');
+							readln();
 						end;
 						3: begin
 							writeln('ТоБі нЕясно?..');
 							writeln('Ти поЧинаЄш наГліти...');
+							readln();
 						end;
 						4: begin
 							writeln('КОМУ СК#ЗАНО ПЕрЕСТАТИ!!!');
 							writeln('Т&БІ, СКАЗ#НО ПЕРЕСТ%ТИ!!!!!!!!!!!!!!!!!');
+							readln();
 						end;
 						5: begin
 							writeln('Я споКі@ний... Так, спо%ійний...');
 							writeln('Те#ер ТВ&Я черга засп@коїтися...');
+							readln();
 						end;
 						6: begin
 							writeln('Д# тебе н* до#оди&ь?!...');
 							writeln('Ти з@об&в уКилеВ пом#лку....');
+							readln();
 						end;
-						else writeln('Ви розбудили велике зло...');	
+						else writeln('Ви розбудили велике зло...');
+							 readln();	
 						end;					
 						G := G + 1;
 				 end;	
@@ -723,16 +698,16 @@ begin
 			else
 			level := CheatNum;
 		   end;	
-	'NewHP':begin
+	'Newhp':begin
 			write('\на скільки підняти життя?');
 			readln(CheatNum);
-			maxp := maxp + CheatNum;
+			maxp := CheatNum;
 			p := maxp;
 			end;
 	'Newpp':begin
 			write('\на скільки підняти броню?');
 			readln(CheatNum);
-			maxpp := maxpp + CheatNum;
+			maxpp := CheatNum;
 			pp := maxpp;
 			end;
 	end;
@@ -756,7 +731,7 @@ while level < 51 do begin	{після смерті вертає тебе сюд�
 	writeln(p,' твоє життя');
 	writeln(pp,'  твоя броня');
 	writeln('в тебе Поламаний кинжал');
-	weaponScan;
+	weaponDamage;
 	
 repeat	
     writeln('кімната-',level);
@@ -844,11 +819,13 @@ repeat
 			readln(ChaMfile, Maxswpm);
 			readln(ChaMfile, pm);
 			readln(ChaMfile, ppm);
+			readln(ChaMfile, BlockingM);
 			close(ChaMfile);
 			
 			writeln(pm,'-життя монстра');
 			writeln(ppm,'-броня монстра');
 			writeln(':');
+			maxppm := ppm;
 				
 
 	case mon of
@@ -900,6 +877,9 @@ repeat   {початок бійки}
 	
 	swm := Minswm + random(Maxswm);
 	swpm := Minswpm + random(Maxswpm);
+	
+	pp := maxpp;
+	ppm := maxppm;
 		
 		
 		
@@ -914,28 +894,31 @@ repeat   {початок бійки}
 	swm := Minswm + random(Maxswm);
 	swpm := Minswpm + random(Maxswpm);
 	
-		weaponScan;
+		weaponDamage;
 		po;
 	
 	case di of
-		1:begin
+{<<<<<<}1:begin
 			case Udm of
 					1:begin
 								if swp > ppm then 
 									begin
-									damageMon;
+									pm := ImpactBlocking(pm, sw, BlockingM, 2, 1);
 									
-										if pm = 0 then break;
+									
+										if pm <= 0 then break;
 										
 											if swpm > pp then 
 											begin
-											damage;
+											p := ImpactBlocking(p, swm, Blocking, 2, 0);
+											
 											
 											end
 											
 											else begin 
 											swm := swm div 2;
-											damage;
+											p := ImpactBlocking(p, swm, Blocking, 2, 0);
+											
 											
 											end;
 								
@@ -945,18 +928,21 @@ repeat   {початок бійки}
 									end
 									else begin 
 									sw := sw div 2;
-									damageMon;
+									pm := ImpactBlocking(pm, sw, BlockingM, 2, 1);
 									
-										if pm = 0 then break;
+									
+										if pm <= 0 then break;
 											if swpm > pp then 
 											begin
-											damage;
+											p := ImpactBlocking(p, swm, Blocking, 2, 0);
+											
 											
 											end
 											
 											else begin 
 											sw := sw div 2;
-											damage;
+											p := ImpactBlocking(p, swm, Blocking, 2, 0);
+											
 											
 											end;
 									end;
@@ -970,19 +956,22 @@ repeat   {початок бійки}
 							pp := pp div 2;
 								if swp > ppm then 
 									begin
-									damageMon;
+									pm := ImpactBlocking(pm, sw, BlockingM, 2, 1);
 									
-										if pm = 0 then break;
+									
+										if pm <= 0 then break;
 											
 											if swpm > pp then 
 											begin
-											damage;
+											p := ImpactBlocking(p, swm, Blocking, 2, 0);
+											
 											
 											end
 											
 											else begin 
 											swm := swm div 2;
-											damage;
+											p := ImpactBlocking(p, swm, Blocking, 2, 0);
+											
 											
 											end;
 								
@@ -992,18 +981,21 @@ repeat   {початок бійки}
 									end
 									else begin 
 									sw := sw div 2;
-									damageMon;
+									pm := ImpactBlocking(pm, sw, BlockingM, 2, 1);
 									
-										if pm = 0 then break;
+									
+										if pm <= 0 then break;
 											if swpm > pp then 
 											begin
-											damage;
+											p := ImpactBlocking(p, swm, Blocking, 2, 0);
+											
 											
 											end
 											
 											else begin 
 											swm := swm div 2;
-											damage;
+											p := ImpactBlocking(p, swm, Blocking, 2, 0);
+											
 											
 											end;
 									end;
@@ -1014,9 +1006,10 @@ repeat   {початок бійки}
 							ppm := ppm * 2;
 								if swp > ppm then 
 									begin
-									damageMon;
+									pm := ImpactBlocking(pm, sw, BlockingM, 1, 1);
 									
-										if pm = 0 then break;
+									
+										if pm <= 0 then break;
 										
 								
 											
@@ -1025,9 +1018,10 @@ repeat   {початок бійки}
 									end
 									else begin 
 									sw := sw div 2;
-									damageMon;
+									pm := ImpactBlocking(pm, sw, BlockingM, 1, 1);
 									
-										if pm = 0 then break;
+									
+										if pm <= 0 then break;
 
 									end;
 								
@@ -1036,9 +1030,10 @@ repeat   {початок бійки}
 					4:begin
 								if swp > ppm then 
 									begin
-									damageMon;
+									pm := ImpactBlocking(pm, sw, BlockingM, 2, 1);
 									
-										if pm = 0 then break;
+									
+										if pm <= 0 then break;
 											
 								
 											
@@ -1047,9 +1042,10 @@ repeat   {початок бійки}
 									end
 									else begin 
 									sw := sw div 2;
-									damageMon;
+									pm := ImpactBlocking(pm, sw, BlockingM, 2, 1);
 									
-										if pm = 0 then break;
+									
+										if pm <= 0 then break;
 											
 									end;
 					  end;
@@ -1057,7 +1053,7 @@ repeat   {початок бійки}
 					
 		  end;
 		
-		2:begin
+{<<<<<<}2:begin
 			case Udm of
 					1:begin
 							sw := sw + (sw div 2);
@@ -1065,19 +1061,22 @@ repeat   {початок бійки}
 							ppm := ppm div 2;
 								if swp > ppm then 
 									begin
-									damageMon;
+									pm := ImpactBlocking(pm, sw, BlockingM, 1, 1);
 									
-										if pm = 0 then break;
+									
+										if pm <= 0 then break;
 										
 											if swpm > pp then 
 											begin
-											damage;
+											p := ImpactBlocking(p, swm, Blocking, 2, 0);
+											
 											
 											end
 											
 											else begin 
 											swm := swm div 2;
-											damage;
+											p := ImpactBlocking(p, swm, Blocking, 2, 0);
+											
 											
 											end;
 								
@@ -1087,18 +1086,20 @@ repeat   {початок бійки}
 									end
 									else begin 
 									sw := sw div 2;
-									damageMon;
+									pm := ImpactBlocking(pm, sw, BlockingM, 1, 1);
 									
-										if pm = 0 then break;
+										if pm <= 0 then break;
 											if swpm > pp then 
 											begin
-											damage;
+											p := ImpactBlocking(p, swm, Blocking, 2, 0);
+											
 											
 											end
 											
 											else begin 
 											sw := sw div 2;
-											damage;
+											p := ImpactBlocking(p, swm, Blocking, 2, 0);
+											
 											
 											end;
 									end;
@@ -1115,19 +1116,22 @@ repeat   {початок бійки}
 								
 								if swp > ppm then 
 									begin
-									damageMon;
+									pm := ImpactBlocking(pm, sw, BlockingM, 1, 1);
 									
-										if pm = 0 then break;
+									
+										if pm <= 0 then break;
 										
 											if swpm > pp then 
 											begin
-											damage;
+											p := ImpactBlocking(p, swm, Blocking, 2, 0);
+											
 											
 											end
 											
 											else begin 
 											swm := swm div 2;
-											damage;
+											p := ImpactBlocking(p, swm, Blocking, 2, 0);
+											
 											
 											end;
 								
@@ -1137,18 +1141,21 @@ repeat   {початок бійки}
 									end
 									else begin 
 									sw := sw div 2;
-									damageMon;
+									pm := ImpactBlocking(pm, sw, BlockingM, 1, 1);
 									
-										if pm = 0 then break;
+									
+										if pm <= 0 then break;
 											if swpm > pp then 
 											begin
-											damage;
+											p := ImpactBlocking(p, swm, Blocking, 2, 0);
+											
 											
 											end
 											
 											else begin 
 											sw := sw div 2;
-											damage;
+											p := ImpactBlocking(p, swm, Blocking, 2, 0);
+											
 											
 											end;
 									end;
@@ -1159,17 +1166,19 @@ repeat   {початок бійки}
 					
 								if swp > ppm then 
 									begin
-									damageMon;
+									pm := ImpactBlocking(pm, sw, BlockingM, 1, 1);
 									
-										if pm = 0 then break;										
+									
+										if pm <= 0 then break;										
 									end
 									
 									
 									else begin 
 									sw := sw div 2;
-									damageMon;
+									pm := ImpactBlocking(pm, sw, BlockingM, 1, 1);
 									
-										if pm = 0 then break;											
+									
+										if pm <= 0 then break;											
 									end;
 									
 					  end;
@@ -1180,38 +1189,42 @@ repeat   {початок бійки}
 						
 								if swp > ppm then 
 									begin
-									damageMon;
+									pm := ImpactBlocking(pm, sw, BlockingM, 2, 1);
 									
-										if pm = 0 then break;										
+									
+										if pm <= 0 then break;										
 									end
 									
 									
 									else begin 
 									sw := sw div 2;
-									damageMon;
+									pm := ImpactBlocking(pm, sw, BlockingM, 2, 1);
 									
-										if pm = 0 then break;											
+									
+										if pm <= 0 then break;											
 									end;	
 					  end;
 					
 					
 				end;
 		  end;
-		
-		3:begin
+
+{<<<<<<}3:begin
 			case Udm of	
 				1:begin
 										pp := pp * 2;
 										
 											if swpm > pp then 
 											begin
-											damage;
+											p := ImpactBlocking(p, swm, Blocking, 1, 0);
+											
 									
 											end
 											
 											else begin 
 											swm := swm div 2;
-											damage;
+											p := ImpactBlocking(p, swm, Blocking, 1, 0);
+											
 									
 											end;												
 				  end;
@@ -1221,13 +1234,15 @@ repeat   {початок бійки}
 									pp := pp div 2;
 										if swpm > pp then 
 											begin
-											damage;
+											p := ImpactBlocking(p, swm, Blocking, 2, 0);
+											
 									
 											end
 											
 											else begin 
 											swm := swm div 2;
-											damage;
+											p := ImpactBlocking(p, swm, Blocking, 2, 0);
+											
 									
 											end;
 				  end;
@@ -1255,18 +1270,20 @@ repeat   {початок бійки}
 			
 		  end;
 		
-		4:begin
+{<<<<<<}4:begin
 			case Udm of	
 				1:begin				
 										if swpm > pp then 
 											begin
-											damage;
+											p := ImpactBlocking(p, swm, Blocking, 2, 0);
+											
 									
 											end
 											
 											else begin 
 											swm := swm div 2;
-											damage;
+											p := ImpactBlocking(p, swm, Blocking, 2, 0);
+											
 									
 											end;
 				  end;
@@ -1275,13 +1292,15 @@ repeat   {початок бійки}
 								pp := pp * 2;
 									if swpm > pp then 
 											begin
-											damage;
+											p := ImpactBlocking(p, swm, Blocking, 1, 0);
+											
 									
 											end
 											
 											else begin 
 											swm := swm div 2;
-											damage;
+											p := ImpactBlocking(p, swm, Blocking, 1, 0);
+											
 									
 											end;
 				  end;
@@ -1330,69 +1349,11 @@ until (pm or p) <= 0;
 				6,11,16:begin
 					wea :=1001;
 					UpdateSkills;
-				end;				
 				end;
-				
-		case wea of
-		0:begin
-			ChaWeapon := '0BrokenDagger.txt';
-			writeln('Поламаний Кинджал');
-		  end;
-		1:begin
-			ChaWeapon := '1BrokenIronDagger.txt';
-			writeln('Поламаний залізний кинджал');
-		  end;
-		2:begin
-			ChaWeapon := '2BrokenIronSword.txt';
-			writeln('Поламаний залізний меч');
-		  end;
-		3:begin
-			ChaWeapon := '3SharpWoodDagger.txt';
-			writeln('Гострий деревʼяний кинджал');
-		  end;
-		4:begin
-			ChaWeapon := '4SharpWoodSword.txt';
-			writeln('Гострий деревʼяний меч');
-		 end;
-		5:begin
-			ChaWeapon := '5IronSword.txt';
-			writeln('Залізний меч');
-		 end;
-		6:begin
-			ChaWeapon := '6SharpIronSword.txt';
-			writeln('Гострий залізний меч');
-		 end;
-		end;		
+				else weaponReadFile;				
+				end;
 			
-			
-		
-			assign(ChaWfile, 'weapon/normal/'+ ChaWeapon);
-			reset(ChaWfile);
-			read(ChaWfile, Minsw);
-			Readln(ChaWfile, Maxsw);
-			read(ChaWfile, Minswp);
-			Readln(ChaWfile, Maxswp);
-			close(ChaWfile);
-			
-		write('урон: ');
-		write(Minsw);
-		write('---');
-		writeln(Maxsw);
-		write('пробивна сила: ');
-		write(Minswp);
-		write('---');
-		writeln(Maxswp);
-		
-				
-		writeln(':' + ':');		
-		writeln('ти візьмеш цю зброю?...');
-		writeln('так-1');
-		writeln('ні-2');
-		readln(have);
-		writeln(':');
-			case have of
-			1: weaponScan;			
-			end;
+
 		
 	end;
 
