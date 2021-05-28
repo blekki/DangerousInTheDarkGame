@@ -33,8 +33,6 @@ var sw : integer;						{сила меча}
 	
 	mon : integer;						{mon-monster (рандомний монстр)}
 	
-	di : integer;						{який удар ти зробиш}
-	
 	{dim : integer;}                    {який удар зробить монстр}
 	Udm : integer;
 	
@@ -44,7 +42,7 @@ var sw : integer;						{сила меча}
 	
 	wea : integer;						{рандомна зброя з мобів}
 	
-	have : byte;						{що з рандомної збої ти візьмеш}{так само відноситься до очків покращень}
+	have : byte;						{що з рандомної збої ти візьмеш}{так само відноситься до очків покращень}{також це твій вибір 1,2,3,4 і т.д.}
 	
 	ChaMfile : text;					{характеристика монстра з текстового файлу}
 	ChaMon : string;					{назва файлу з монстром}
@@ -429,29 +427,29 @@ end;
 function ImpactBlocking(hp, damage : integer; Block, Num, stan : byte) : integer; {stan: 0 - людину, 1- монстра}
 var K : byte;
 begin
-	K := random(100);
+	K := 1 + random(100);
 	Block := Block div Num;
 	if K <= Block then begin
 		if stan = 0 then begin
 		writeln('Блокування вдалося');
-		writeln(p, '-0');
+		writeln(hp, '-0');
 		ImpactBlocking := hp;
 		end
 		else begin
 		writeln('Монстер відбив вашу атаку');
-		writeln(pm,'-0');
+		writeln(hp,'-0');
 		ImpactBlocking := hp;
 		end;
 	end
 	else begin
 		if stan = 0 then begin
 		writeln('лишилось твого життя');
-		writeln(p,'-',swm);
+		writeln(hp,'-',damage);
 		ImpactBlocking := hp - damage;	
 		end
 		else begin
 		writeln('лишилось життя монстра');
-		writeln(pm,'-',sw);
+		writeln(hp,'-',damage);
 		ImpactBlocking := hp - damage;
 		end;
 	end;
@@ -697,6 +695,111 @@ begin
 	until cheat = '';
 end;
 
+procedure FightTheMonster();
+
+begin
+	writeln('1: простий удар');
+	writeln('2: удар в спину');
+	writeln('3: встати за щит');
+	writeln('4: слідкувати за спиною');
+	readln(have);
+	writeln(':');
+	weaponDamage;
+	
+	swm := Minswm + random(Maxswm);
+	swpm := Minswpm + random(Maxswpm);
+	
+	po;
+	
+	case have of
+	1,2:begin
+			if have = 2 then begin
+			sw := sw + (sw div 2);
+			pp := pp div 2;
+			end;
+			
+			case Udm of
+			1,2:begin
+					if Udm = 2 then begin
+					swm := swm + (swm div 2);
+					ppm := ppm div 2;
+					end;
+						if swp < ppm then 
+						sw := sw div 2;
+						
+						pm := ImpactBlocking(pm, sw, BlockingM, 2, 1);
+							if pm > 0 then begin
+								if swpm < pp then
+								swm := swm div 2;
+								
+								p := ImpactBlocking(p, swm, Blocking, 2, 0);
+							end;
+				end;
+			3,4:begin
+				if have = 1 then begin
+				  if Udm = 3 then
+					ppm := ppm * 2
+				  else 
+					ppm := ppm div 2;
+				end
+				else begin
+				  if Udm = 3 then 
+					ppm := ppm div 2
+				  else 
+					ppm := ppm * 2;
+				end;
+					
+						if swp < ppm then begin
+						sw := sw div 2;
+						pm := ImpactBlocking(pm, sw, BlockingM, 1, 1);
+						end
+						else
+						pm := ImpactBlocking(pm, sw, BlockingM, 2, 1);
+						p := ImpactBlocking(p, 0, 0, 2, 0);
+				end;
+			end;		
+		  end;
+	3,4: begin
+				case Udm of
+			1,2:begin	
+				if have = 3 then begin
+					if Udm = 1 then
+					swpm := swpm div 2
+					else begin
+					swm := swm + (swm div 2);
+					ppm := ppm div 2;
+					swpm := swpm * 2;
+					end;
+				end		
+				else begin
+					if Udm = 1 then
+					swpm := swpm * 2
+					else begin
+					swm := swm + (swm div 2);
+					ppm := ppm div 2;
+					swpm := swpm div 2;
+					end;
+				end;
+					
+					pm := ImpactBlocking(pm, 0, 0, 2, 1);
+						if swpm < pp then begin
+						swm := swm div 2;
+						p := ImpactBlocking(p, swm, Blocking, 1, 0);
+						end
+						else
+						p := ImpactBlocking(p, swm, Blocking, 2, 0);
+				end;
+			3,4:begin
+					pm := ImpactBlocking(pm, 0, 0, 1, 1);
+					p := ImpactBlocking(p, 0, 0, 1, 0);
+				end;
+			end;
+		end			
+	
+	end;
+	
+end;
+
 {основна программа<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
 
 BEGIN
@@ -714,7 +817,6 @@ while level < 51 do begin	{після смерті вертає тебе сюд�
 	writeln(p,' твоє життя');
 	writeln(pp,'  твоя броня');
 	writeln('в тебе Поламаний кинжал');
-	weaponDamage;
 	
 repeat	
     writeln('кімната-',level);
@@ -858,465 +960,16 @@ repeat   {початок бійки}
 			end
 			else readln(UdarMfile, Udm);
 	
-	swm := Minswm + random(Maxswm);
-	swpm := Minswpm + random(Maxswpm);
-	
 	pp := maxpp;
 	ppm := maxppm;
 		
-		
-		
-		
+	FightTheMonster;
 
-	writeln('1: простий удар');
-	writeln('2: удар в спину');
-	writeln('3: встати за щит');
-	writeln('4: слідкувати за спиною');
-	readln(di);
-	writeln(':');
-	swm := Minswm + random(Maxswm);
-	swpm := Minswpm + random(Maxswpm);
-	
-		weaponDamage;
-		po;
-	
-	case di of
-{<<<<<<}1:begin
-			case Udm of
-					1:begin
-								if swp > ppm then 
-									begin
-									pm := ImpactBlocking(pm, sw, BlockingM, 2, 1);
-									
-									
-										if pm <= 0 then break;
-										
-											if swpm > pp then 
-											begin
-											p := ImpactBlocking(p, swm, Blocking, 2, 0);
-											
-											
-											end
-											
-											else begin 
-											swm := swm div 2;
-											p := ImpactBlocking(p, swm, Blocking, 2, 0);
-											
-											
-											end;
-								
-											
-											
-											
-									end
-									else begin 
-									sw := sw div 2;
-									pm := ImpactBlocking(pm, sw, BlockingM, 2, 1);
-									
-									
-										if pm <= 0 then break;
-											if swpm > pp then 
-											begin
-											p := ImpactBlocking(p, swm, Blocking, 2, 0);
-											
-											
-											end
-											
-											else begin 
-											sw := sw div 2;
-											p := ImpactBlocking(p, swm, Blocking, 2, 0);
-											
-											
-											end;
-									end;
-								
-							
-					  end;
-					  
-					2:begin
-							ppm := ppm div 2;
-							swm:= swm + (swm div 2);
-							pp := pp div 2;
-								if swp > ppm then 
-									begin
-									pm := ImpactBlocking(pm, sw, BlockingM, 2, 1);
-									
-									
-										if pm <= 0 then break;
-											
-											if swpm > pp then 
-											begin
-											p := ImpactBlocking(p, swm, Blocking, 2, 0);
-											
-											
-											end
-											
-											else begin 
-											swm := swm div 2;
-											p := ImpactBlocking(p, swm, Blocking, 2, 0);
-											
-											
-											end;
-								
-											
-											
-											
-									end
-									else begin 
-									sw := sw div 2;
-									pm := ImpactBlocking(pm, sw, BlockingM, 2, 1);
-									
-									
-										if pm <= 0 then break;
-											if swpm > pp then 
-											begin
-											p := ImpactBlocking(p, swm, Blocking, 2, 0);
-											
-											
-											end
-											
-											else begin 
-											swm := swm div 2;
-											p := ImpactBlocking(p, swm, Blocking, 2, 0);
-											
-											
-											end;
-									end;
-					
-					  end;
-					  
-					3:begin
-							ppm := ppm * 2;
-								if swp > ppm then 
-									begin
-									pm := ImpactBlocking(pm, sw, BlockingM, 1, 1);
-									
-									
-										if pm <= 0 then break;
-										
-								
-											
-											
-											
-									end
-									else begin 
-									sw := sw div 2;
-									pm := ImpactBlocking(pm, sw, BlockingM, 1, 1);
-									
-									
-										if pm <= 0 then break;
-
-									end;
-								
-					  end;
-					  
-					4:begin
-								if swp > ppm then 
-									begin
-									pm := ImpactBlocking(pm, sw, BlockingM, 2, 1);
-									
-									
-										if pm <= 0 then break;
-											
-								
-											
-											
-											
-									end
-									else begin 
-									sw := sw div 2;
-									pm := ImpactBlocking(pm, sw, BlockingM, 2, 1);
-									
-									
-										if pm <= 0 then break;
-											
-									end;
-					  end;
-					end;
-					
-		  end;
-		
-{<<<<<<}2:begin
-			case Udm of
-					1:begin
-							sw := sw + (sw div 2);
-							pp := pp div 2;
-							ppm := ppm div 2;
-								if swp > ppm then 
-									begin
-									pm := ImpactBlocking(pm, sw, BlockingM, 1, 1);
-									
-									
-										if pm <= 0 then break;
-										
-											if swpm > pp then 
-											begin
-											p := ImpactBlocking(p, swm, Blocking, 2, 0);
-											
-											
-											end
-											
-											else begin 
-											swm := swm div 2;
-											p := ImpactBlocking(p, swm, Blocking, 2, 0);
-											
-											
-											end;
-								
-											
-											
-											
-									end
-									else begin 
-									sw := sw div 2;
-									pm := ImpactBlocking(pm, sw, BlockingM, 1, 1);
-									
-										if pm <= 0 then break;
-											if swpm > pp then 
-											begin
-											p := ImpactBlocking(p, swm, Blocking, 2, 0);
-											
-											
-											end
-											
-											else begin 
-											sw := sw div 2;
-											p := ImpactBlocking(p, swm, Blocking, 2, 0);
-											
-											
-											end;
-									end;
-								
-							
-					  end;
-					  
-					2:begin		pp := pp div 2;
-								pp := pp div 2;
-								sw := sw + (sw div 2);
-								ppm := ppm div 2;
-								ppm := ppm div 2;
-								swm := swm + (swm div 2);
-								
-								if swp > ppm then 
-									begin
-									pm := ImpactBlocking(pm, sw, BlockingM, 1, 1);
-									
-									
-										if pm <= 0 then break;
-										
-											if swpm > pp then 
-											begin
-											p := ImpactBlocking(p, swm, Blocking, 2, 0);
-											
-											
-											end
-											
-											else begin 
-											swm := swm div 2;
-											p := ImpactBlocking(p, swm, Blocking, 2, 0);
-											
-											
-											end;
-								
-											
-											
-											
-									end
-									else begin 
-									sw := sw div 2;
-									pm := ImpactBlocking(pm, sw, BlockingM, 1, 1);
-									
-									
-										if pm <= 0 then break;
-											if swpm > pp then 
-											begin
-											p := ImpactBlocking(p, swm, Blocking, 2, 0);
-											
-											
-											end
-											
-											else begin 
-											sw := sw div 2;
-											p := ImpactBlocking(p, swm, Blocking, 2, 0);
-											
-											
-											end;
-									end;
-					  end;
-					
-					3:begin	
-								sw := sw + (sw div 2);
-					
-								if swp > ppm then 
-									begin
-									pm := ImpactBlocking(pm, sw, BlockingM, 1, 1);
-									
-									
-										if pm <= 0 then break;										
-									end
-									
-									
-									else begin 
-									sw := sw div 2;
-									pm := ImpactBlocking(pm, sw, BlockingM, 1, 1);
-									
-									
-										if pm <= 0 then break;											
-									end;
-									
-					  end;
-					
-					4:begin		
-								sw := sw + (sw div 2);
-								ppm := ppm * 2;
-						
-								if swp > ppm then 
-									begin
-									pm := ImpactBlocking(pm, sw, BlockingM, 2, 1);
-									
-									
-										if pm <= 0 then break;										
-									end
-									
-									
-									else begin 
-									sw := sw div 2;
-									pm := ImpactBlocking(pm, sw, BlockingM, 2, 1);
-									
-									
-										if pm <= 0 then break;											
-									end;	
-					  end;
-					
-					
-				end;
-		  end;
-
-{<<<<<<}3:begin
-			case Udm of	
-				1:begin
-										pp := pp * 2;
-										
-											if swpm > pp then 
-											begin
-											p := ImpactBlocking(p, swm, Blocking, 1, 0);
-											
-									
-											end
-											
-											else begin 
-											swm := swm div 2;
-											p := ImpactBlocking(p, swm, Blocking, 1, 0);
-											
-									
-											end;												
-				  end;
-				
-				2:begin
-									swm := swm + (swm div 2);
-									pp := pp div 2;
-										if swpm > pp then 
-											begin
-											p := ImpactBlocking(p, swm, Blocking, 2, 0);
-											
-									
-											end
-											
-											else begin 
-											swm := swm div 2;
-											p := ImpactBlocking(p, swm, Blocking, 2, 0);
-											
-									
-											end;
-				  end;
-				
-				3:begin
-								pp := pp * 2;
-								ppm := ppm * 2; 
-								writeln('лишилось життя монстра');
-								writeln(pm);
-								writeln('лишилось твого життя');
-								writeln(p);
-				  end;
-				
-				4:begin
-								pp := pp * 2;
-								writeln('лишилось життя монстра');
-								writeln(pm);
-								writeln('лишилось твого життя');
-								writeln(p);
-								 
-								
-				  end;
-			end;
-			
-			
-		  end;
-		
-{<<<<<<}4:begin
-			case Udm of	
-				1:begin				
-										if swpm > pp then 
-											begin
-											p := ImpactBlocking(p, swm, Blocking, 2, 0);
-											
-									
-											end
-											
-											else begin 
-											swm := swm div 2;
-											p := ImpactBlocking(p, swm, Blocking, 2, 0);
-											
-									
-											end;
-				  end;
-				
-				2:begin			
-								pp := pp * 2;
-									if swpm > pp then 
-											begin
-											p := ImpactBlocking(p, swm, Blocking, 1, 0);
-											
-									
-											end
-											
-											else begin 
-											swm := swm div 2;
-											p := ImpactBlocking(p, swm, Blocking, 1, 0);
-											
-									
-											end;
-				  end;
-				
-				3:begin 
-								ppm := ppm * 2; 
-								writeln('лишилось життя монстра');
-								writeln(pm);
-								writeln('лишилось твого життя');
-								writeln(p);
-				  end;
-				
-				4:begin
-								pp := pp * 2;
-								ppm := ppm * 2; 
-								writeln('лишилось життя монстра');
-								writeln(pm);
-								writeln('лишилось твого життя');
-								writeln(p);
-				  end;
-			end;
-		  end;
-	
-	
-	end;
-	
-	
 until (pm or p) <= 0;	
 	if p <= 0 then 
 			begin
 				dead;		
-				end
-			
+				end			
 	else 
 	begin
 	povtor := '1';
@@ -1324,20 +977,14 @@ until (pm or p) <= 0;
 		writeln(':');
 		writeln('НАГОРОДА З МОНСТРА');
 		level := level + 1;		
-		wea := level + random(3);
-
-
-		
+		wea := level + random(3);	
 			case level of				
 				6,11,16:begin
 					wea :=1001;
 					UpdateSkills;
 				end;
 				else weaponReadFile;				
-				end;
-			
-
-		
+				end;		
 	end;
 
 		
