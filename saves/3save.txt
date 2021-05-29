@@ -1,11 +1,1 @@
-1 (стан збереження)
-3982 (p)
-3 (pp)
-4000 (Maxp)
-15 (Maxpp)
-3 (level)
-2 (Minsw)
-4 (Maxsw)
-1 (Minswp)
-3 (Maxswp)
-10 (Blocking)
+0

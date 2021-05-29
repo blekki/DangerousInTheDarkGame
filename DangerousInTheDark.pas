@@ -13,6 +13,7 @@ var sw : integer;						{сила меча}
 	Maxswp : integer;					{максимальна бробивна сила} 
 	
 	Blocking : byte;					{твій шанс блокування}
+	DoubleBlow : byte; 					{твій шанс подвійного удару}
 	
 	maxp : integer;						{твоє максимальне здоров'я}
 	maxpp : integer;					{твій максимальний щит}
@@ -30,6 +31,7 @@ var sw : integer;						{сила меча}
 	Maxswpm : integer;					{максимальна бробивна сила монстра} 
 	
 	BlockingM : byte;					{шанс блокування монстра}
+	DoubleBlowM : byte; 				{шанс подвійного удару монстра}
 	
 	mon : integer;						{mon-monster (рандомний монстр)}
 	
@@ -82,7 +84,8 @@ begin
 	Maxsw	:=4;
 	Minswp 	:=1;
 	Maxswp 	:=3;
-	Blocking := 10;
+	Blocking := 20;
+	DoubleBlow := 20;
 	
 	p := 30;
 	pp := 15;
@@ -94,23 +97,6 @@ end;
 procedure weapon();
 begin
 case wea of
-
-1:begin
-	writeln('поламаний кинжал'); 
-	writeln('---сила меча : 2-5');
-	writeln('---пробивна сила меча : 1-3');
-  end;
-
-2:begin 
-	writeln('залізний кинжал');
-	writeln('---сила меча : 4-8');
-	writeln('---пробивна сила меча : 2-5');
-  end;
-3:begin
-	writeln('залізний меч');
-	writeln('---сила меча : 5-10');
-	writeln('---пробивна сила меча : 3-5');
-  end;
 3:begin 
 	writeln('залізний молот');
 	writeln('---сила меча : 6-8');
@@ -245,21 +231,6 @@ end;
 
 {----------------------------------------
 case wea of
-0:begin 
-	поламаний кинжал
-	sw := 2 + random(4);
-	swp := 1 + random(3);
-  end;
-1:begin 
-	залізний кинжал
-	sw := 4 + random(5);
-	swp := 2 + random(4);
-  end;
-2:begin 
-	залізний меч
-	sw := 5 + random(6);
-	swp := 3 + random(3);
-  end;
 3:begin 
 	залізний молот
 	sw := 6 + random(3);
@@ -423,32 +394,67 @@ begin
 end;
 
 -------------------------------------------------------}
+{критичний удар}
+function DoubleBlowPercent(sword, swordPierce, armor : integer; Doub, Num : byte) : integer; {sword(sw), swordPierce(swp), armor(pp), Doub(Double),}{коли Num = 1-протилежний щит, 2-щит}
+var K : byte;
+begin
+	K := 1 + Random(100);
+	if swordPierce > armor then
+	Doub := Doub + (Doub div 4);
+	
+	case Num of
+	1:Doub := Doub + (Doub div 2);
+	2:Doub := Doub div Num;
+	end;
+	
+	if Doub > 40 then
+	
+	
+	if K <= Doub then begin
+	DoubleBlowPercent := sword + (sword div 2);
+	end
+	else begin
+	DoubleBlowPercent := sword;
+	end;
+
+end;
+
 {блокування удару}
-function ImpactBlocking(hp, damage : integer; Block, Num, stan : byte) : integer; {stan: 0 - людину, 1- монстра}
+function ImpactBlocking(hp, damage, DoubBl : integer; Block, Num, stan : byte) : integer; {stan: 0 - людину, 1- монстра}
 var K : byte;
 begin
 	K := 1 + random(100);
 	Block := Block div Num;
 	if K <= Block then begin
 		if stan = 0 then begin
-		writeln('Блокування вдалося');
+			if DoubBl > damage then 
+			writeln('Блокування двійного удару вдалося')
+			else
+			writeln('Блокування вдалося');
 		writeln(hp, '-0');
 		ImpactBlocking := hp;
 		end
 		else begin
-		writeln('Монстер відбив вашу атаку');
+			if DoubBl > damage then
+			writeln('Монстер відбив подвійну атаку')
+			else
+			writeln('Монстер відбив вашу атаку');
 		writeln(hp,'-0');
 		ImpactBlocking := hp;
 		end;
 	end
 	else begin
 		if stan = 0 then begin
-		writeln('лишилось твого життя');
+			if DoubBl > damage then
+			writeln('По тобі вдарили подвійною удар');
+			writeln('лишилось твого життя');
 		writeln(hp,'-',damage);
 		ImpactBlocking := hp - damage;	
 		end
 		else begin
-		writeln('лишилось життя монстра');
+			if damage < DoubBl then
+			writeln('Подвійна атака');
+			writeln('лишилось життя монстра');
 		writeln(hp,'-',damage);
 		ImpactBlocking := hp - damage;
 		end;
@@ -524,6 +530,7 @@ begin
 					readln(SaveFile, Minswp);
 					readln(SaveFile, Maxswp);
 					readln(SaveFile, Blocking);
+					readln(SaveFile, DoubleBlow);
 									
 					close(SaveFile);
 			      end;
@@ -557,17 +564,18 @@ var SaveGfile : text;
 begin
 	assign(SaveGfile, 'saves/' + B + 'save.txt');
 	rewrite(SaveGfile);
-	writeln(SaveGfile, 1, 		 ' (стан збереження)');
-	writeln(SaveGfile, p,		 ' (p)');
-	writeln(SaveGfile, pp, 		 ' (pp)');
-	writeln(SaveGfile, Maxp,	 ' (Maxp)');
-	writeln(SaveGfile, Maxpp,	 ' (Maxpp)');
-	writeln(SaveGfile, Level,	 ' (level)');
-	writeln(SaveGfile, Minsw,	 ' (Minsw)');
-	writeln(SaveGfile, Maxsw,	 ' (Maxsw)');
-	writeln(SaveGfile, Minswp,	 ' (Minswp)');
-	writeln(SaveGfile, Maxswp, 	 ' (Maxswp)');
-	writeln(SaveGfile, Blocking, ' (Blocking)');
+	writeln(SaveGfile, 1, 		   ' (стан збереження)');
+	writeln(SaveGfile, p,		   ' (p)');
+	writeln(SaveGfile, pp, 		   ' (pp)');
+	writeln(SaveGfile, Maxp,	   ' (Maxp)');
+	writeln(SaveGfile, Maxpp,	   ' (Maxpp)');
+	writeln(SaveGfile, Level,	   ' (level)');
+	writeln(SaveGfile, Minsw,	   ' (Minsw)');
+	writeln(SaveGfile, Maxsw,	   ' (Maxsw)');
+	writeln(SaveGfile, Minswp,	   ' (Minswp)');
+	writeln(SaveGfile, Maxswp, 	   ' (Maxswp)');
+	writeln(SaveGfile, Blocking,   ' (Blocking)');
+	writeln(SaveGfile, DoubleBlow, ' (DoubleBlow)');
 	close(SaveGfile);
 	
 end;
@@ -616,7 +624,7 @@ begin
 					writeln(maxpp,'-твоя нова броня');
 					writeln(':');
 						if pp < maxpp then
-						pp := pp + 1;
+						pp := maxpp;
 					
 					if K = 1 then
 					writeln('В тебе лишилося одне очко покращення');
@@ -696,7 +704,7 @@ begin
 end;
 
 procedure FightTheMonster();
-
+var swDouble : integer;
 begin
 	writeln('1: простий удар');
 	writeln('2: удар в спину');
@@ -727,35 +735,44 @@ begin
 						if swp < ppm then 
 						sw := sw div 2;
 						
-						pm := ImpactBlocking(pm, sw, BlockingM, 2, 1);
+						swDouble := DoubleBlowPercent(sw, swp, ppm, DoubleBlow, 0);
+						pm := ImpactBlocking(pm, sw, swDouble, BlockingM, 2, 1);{<<<>>>}
 							if pm > 0 then begin
 								if swpm < pp then
 								swm := swm div 2;
 								
-								p := ImpactBlocking(p, swm, Blocking, 2, 0);
+								p := ImpactBlocking(p, swm, swDouble, Blocking, 2, 0);{<<<>>>}
 							end;
 				end;
 			3,4:begin
 				if have = 1 then begin
-				  if Udm = 3 then
-					ppm := ppm * 2
-				  else 
+				  if Udm = 3 then begin
+					ppm := ppm * 2;
+					swDouble := DoubleBlowPercent(sw, swp, ppm, DoubleBlow, 2);
+				  end
+				  else begin
 					ppm := ppm div 2;
+					swDouble := DoubleBlowPercent(sw, swp, ppm, DoubleBlow, 1);
+				  end;
 				end
 				else begin
-				  if Udm = 3 then 
-					ppm := ppm div 2
-				  else 
+				  if Udm = 3 then begin
+					ppm := ppm div 2;
+					swDouble := DoubleBlowPercent(sw, swp, ppm, DoubleBlow, 1);
+				  end
+				  else begin
 					ppm := ppm * 2;
+					swDouble := DoubleBlowPercent(sw, swp, ppm, DoubleBlow, 2);
+				  end;
 				end;
-					
+				
 						if swp < ppm then begin
 						sw := sw div 2;
-						pm := ImpactBlocking(pm, sw, BlockingM, 1, 1);
+						pm := ImpactBlocking(pm, sw, swDouble, BlockingM, 1, 1);{<<<>>>}
 						end
 						else
-						pm := ImpactBlocking(pm, sw, BlockingM, 2, 1);
-						p := ImpactBlocking(p, 0, 0, 2, 0);
+						pm := ImpactBlocking(pm, sw, swDouble, BlockingM, 2, 1);{<<<>>>}
+						p := ImpactBlocking(p, 0, 0, 0, 2, 0);{<<<}
 				end;
 			end;		
 		  end;
@@ -763,35 +780,41 @@ begin
 				case Udm of
 			1,2:begin	
 				if have = 3 then begin
-					if Udm = 1 then
-					swpm := swpm div 2
+					if Udm = 1 then begin
+					swpm := swpm div 2;
+					swDouble := DoubleBlowPercent(swm, swpm, pp, DoubleBlowM ,2);
+					end
 					else begin
 					swm := swm + (swm div 2);
 					ppm := ppm div 2;
 					swpm := swpm * 2;
+					swDouble := DoubleBlowPercent(swm, swpm, pp, DoubleBlowM ,1);
 					end;
 				end		
 				else begin
-					if Udm = 1 then
-					swpm := swpm * 2
+					if Udm = 1 then begin
+					swpm := swpm * 2;
+					swDouble := DoubleBlowPercent(swm, swpm, pp, DoubleBlowM ,2);
+					end
 					else begin
 					swm := swm + (swm div 2);
 					ppm := ppm div 2;
 					swpm := swpm div 2;
+					swDouble := DoubleBlowPercent(swm, swpm, pp, DoubleBlowM ,1);
 					end;
 				end;
 					
-					pm := ImpactBlocking(pm, 0, 0, 2, 1);
+					pm := ImpactBlocking(pm, 0, 0, 0, 2, 1);{<<<}
 						if swpm < pp then begin
 						swm := swm div 2;
-						p := ImpactBlocking(p, swm, Blocking, 1, 0);
+						p := ImpactBlocking(p, swm, swDouble, Blocking, 2, 0);{<<<>>>}
 						end
 						else
-						p := ImpactBlocking(p, swm, Blocking, 2, 0);
+						p := ImpactBlocking(p, swm, swDouble, Blocking, 2, 0);{<<<>>>}
 				end;
 			3,4:begin
-					pm := ImpactBlocking(pm, 0, 0, 1, 1);
-					p := ImpactBlocking(p, 0, 0, 1, 0);
+					pm := ImpactBlocking(pm, 0, 0, 0, 1, 1);{<<<}
+					p := ImpactBlocking(p, 0, 0, 0, 1, 0);{<<<}
 				end;
 			end;
 		end			
@@ -905,6 +928,7 @@ repeat
 			readln(ChaMfile, pm);
 			readln(ChaMfile, ppm);
 			readln(ChaMfile, BlockingM);
+			readln(ChaMfile, DoubleBlowM);
 			close(ChaMfile);
 			
 			writeln(pm,'-життя монстра');
